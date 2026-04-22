@@ -1,85 +1,57 @@
-import { Request, Response } from "express";
-import { db } from "../database/connection";
+import { createUserService } from "../services/createUserService";
+import { deleteUserService } from "../services/deleteUserService";
+import { getUserByIdService } from "../services/getUserByIdService";
+import { listUsersService } from "../services/listUsersService";
+import { updateUserService } from "../services/updateUserService";
 
-export async function createUser(req: Request, res: Response) {
-    const { name, email } = req.body;
+export async function createUser(name: string, email: string) {
+    try {
+        const result = await createUserService(name, email);
 
-    if (!name || !email) {
-        return res.status(400).json({ error: "name e email são obrigatórios" });
+        return result;
+    } catch (error: any) {
+        throw new Error(error.message);
     }
-
-    const existing = await db("users").where({ email }).first();
-    if (existing) {
-        return res.status(409).json({ error: "email já cadastrado" });
-    }
-
-    await db("users").insert({
-        name,
-        email
-    });
-
-    return res.json({ ok: true });
 }
 
-export async function listUsers(_req: Request, res: Response) {
-    const users = await db("users").select("id", "name", "email", "created_at", "updated_at");
-    return res.json(users);
+export async function listUsers() {
+    try {
+        const users = await listUsersService();
+        return users;
+    } catch (error: any) {
+        throw new Error(error.message);
+    }
 }
 
-export async function getUserById(req: Request, res: Response) {
-    const { id } = req.params;
-
-    const user = await db("users")
-        .where({ id: Number(id) })
-        .first()
-        .select("id", "name", "email", "created_at", "updated_at");
-
-    if (!user) {
-        return res.status(404).json({ error: "usuário não encontrado" });
+export async function getUserById(id: number) {
+    try {
+        const user = await getUserByIdService(id);
+        return user;
+    } catch (error: any) {
+        throw new Error(error.message);
     }
-
-    return res.json(user);
 }
 
-export async function updateUser(req: Request, res: Response) {
-    const { id } = req.params;
-    const { name, email } = req.body as { name?: string; email?: string };
-
-    const user = await db("users").where({ id: Number(id) }).first();
-    if (!user) {
-        return res.status(404).json({ error: "usuário não encontrado" });
+export async function updateUser(
+    id: number,
+    data: {
+        name?: string;
+        email?: string;
     }
-
-    if (email) {
-        const emailOwner = await db("users").where({ email }).first();
-        if (emailOwner && Number(emailOwner.id) !== Number(id)) {
-            return res.status(409).json({ error: "email já cadastrado" });
-        }
+) {
+    try {
+        const updated = await updateUserService(id, data);
+        return updated;
+    } catch (error: any) {
+        throw new Error(error.message);
     }
-
-    const updates: Record<string, unknown> = {};
-    if (name !== undefined) updates.name = name;
-    if (email !== undefined) updates.email = email;
-    updates.updated_at = db.fn.now();
-
-    await db("users").where({ id: Number(id) }).update(updates);
-
-    const updated = await db("users")
-        .where({ id: Number(id) })
-        .first()
-        .select("id", "name", "email", "created_at", "updated_at");
-
-    return res.json(updated);
 }
 
-export async function deleteUser(req: Request, res: Response) {
-    const { id } = req.params;
-
-    const user = await db("users").where({ id: Number(id) }).first();
-    if (!user) {
-        return res.status(404).json({ error: "usuário não encontrado" });
+export async function deleteUser(id: number) {
+    try {
+        const result = await deleteUserService(id);
+        return result;
+    } catch (error: any) {
+        throw new Error(error.message);
     }
-
-    await db("users").where({ id: Number(id) }).delete();
-    return res.status(204).send();
 }
