@@ -1,21 +1,30 @@
 {
   "name": "cleanarch",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev src/index.ts",
-    "knex:migrate": "knex --knexfile knexfile.ts migrate:latest"
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "knex:migrate": "NODE_OPTIONS='-r ts-node/register' knex --knexfile knexfile.ts migrate:latest",
+    "knex:rollback": "NODE_OPTIONS='-r ts-node/register' knex --knexfile knexfile.ts migrate:rollback",
+    "knex:status": "NODE_OPTIONS='-r ts-node/register' knex --knexfile knexfile.ts migrate:status"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "express": "^5.2.1",
     "knex": "^3.2.9",
     "sqlite3": "^6.0.1"
   },
   "devDependencies": {
-    "@types/node": "^25.6.0"
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^6.0.3"
   }
 }
