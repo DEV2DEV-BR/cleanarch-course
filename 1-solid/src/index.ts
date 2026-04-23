@@ -19,63 +19,28 @@ class EmailService {
   }
 }
 
-// ---------------------------------------------
-
-class OrderValidator {
-  validate(data: OrderInput) {
+class OrderService {
+  async createOrder(data: OrderInput) {
+    // validação
     if (!data.userId) {
       throw new Error("User is required");
     }
-  }
-}
 
-interface IOrderRepository {
-  save(data: OrderInput): Promise<void>;
-}
+    // salvar no banco (acoplado)
+    const db = new PostgresDatabase();
+    await db.save("orders", data);
 
-class PostgresOrderRepository implements IOrderRepository {
-  private db = new PostgresDatabase();
-
-  async save(data: OrderInput): Promise<void> {
-    await this.db.save("orders", "data");
-  }
-}
-
-class MysqlOrderRepository implements IOrderRepository {
-  async save(data: OrderInput): Promise<void> {
-    console.log(data, "mysql data");
-  }
-}
-
-class CreateOrder {
-  constructor(
-    private validator: OrderValidator,
-    private repository: IOrderRepository,
-    private email: EmailService,
-  ) {}
-
-  async execute(data: OrderInput) {
-    this.validator.validate(data);
-
-    await this.repository.save(data);
-    await this.email.send(data.userId, "Pedido criado");
+    // enviar email
+    const emailService = new EmailService();
+    await emailService.send(data.userId, "Pedido criado");
 
     return { success: true };
   }
 }
 
 async function main() {
-  const orderValidator = new OrderValidator();
-  const postgreOrderRepository = new PostgresOrderRepository();
-  const emailService = new EmailService();
-
-  const createOrder = new CreateOrder(
-    orderValidator,
-    postgreOrderRepository,
-    emailService,
-  );
-
-  const result = await createOrder.execute({
+  const service = new OrderService();
+  const result = await service.createOrder({
     userId: "user-123",
     items: ["item-1"],
   });
