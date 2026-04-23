@@ -1,3 +1,4 @@
+import { KnexUserRepository } from "../repositories/KnexUserRepository";
 import { createUserService } from "../services/createUserService";
 import { deleteUserService } from "../services/deleteUserService";
 import { getUserByIdService } from "../services/getUserByIdService";
@@ -6,7 +7,10 @@ import { updateUserService } from "../services/updateUserService";
 
 export async function createUser(name: string, email: string) {
     try {
-        const result = await createUserService(name, email);
+
+        const repository = new KnexUserRepository();
+
+        const result = await createUserService(repository, name, email);
 
         return result;
     } catch (error: any) {
