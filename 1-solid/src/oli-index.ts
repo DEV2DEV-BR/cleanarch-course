@@ -29,35 +29,27 @@ class OrderValidator {
   }
 }
 
-interface IOrderRepository {
-  save(data: OrderInput): Promise<void>;
-}
-
-class PostgresOrderRepository implements IOrderRepository {
-  private db = new PostgresDatabase();
-
-  async save(data: OrderInput): Promise<void> {
-    await this.db.save("orders", "data");
-  }
-}
-
-class MysqlOrderRepository implements IOrderRepository {
-  async save(data: OrderInput): Promise<void> {
-    console.log(data, "mysql data");
+class OrderRepository {
+  async save(data: OrderInput, dbType: "postgres" | "mysql"): Promise<void> {
+    if (dbType === "mysql") {
+      console.log("Save in mysql");
+    } else {
+      console.log("Save in postgres");
+    }
   }
 }
 
 class CreateOrder {
   constructor(
     private validator: OrderValidator,
-    private repository: IOrderRepository,
+    private repository: OrderRepository,
     private email: EmailService,
   ) {}
 
   async execute(data: OrderInput) {
     this.validator.validate(data);
 
-    await this.repository.save(data);
+    await this.repository.save(data, "postgres");
     await this.email.send(data.userId, "Pedido criado");
 
     return { success: true };
@@ -66,12 +58,12 @@ class CreateOrder {
 
 async function main() {
   const orderValidator = new OrderValidator();
-  const postgreOrderRepository = new PostgresOrderRepository();
+  const orderRepository = new OrderRepository();
   const emailService = new EmailService();
 
   const createOrder = new CreateOrder(
     orderValidator,
-    postgreOrderRepository,
+    orderRepository,
     emailService,
   );
 
