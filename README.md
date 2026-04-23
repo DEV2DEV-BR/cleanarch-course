@@ -20,6 +20,12 @@ Módulo com exemplos de evolução de design aplicando princípios SOLID e redu�
 - `src/oli-index.ts`: etapa intermediária de refatoração;
 - `src/index.ts`: versão mais evoluída com separação de responsabilidades e uso de abstrações.
 
+### `2-ddd`
+
+Módulo com introdução prática aos conceitos de DDD (Domain-Driven Design), preparando a transição entre SOLID e Clean Architecture.
+
+- `src/index.ts`: ponto de partida dos exemplos de DDD.
+
 ### `3-cleanarch`
 
 Módulo com API backend em evolução arquitetural, incluindo camadas iniciais de entrada HTTP, controller e persistência.
@@ -62,6 +68,14 @@ Cada módulo possui seu próprio `package.json`. Execute os comandos dentro da p
 
 ```bash
 cd "1-solid"
+npm install
+npm run dev
+```
+
+### Executar o módulo `2-ddd`
+
+```bash
+cd "2-ddd"
 npm install
 npm run dev
 ```
