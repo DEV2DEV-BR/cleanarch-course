@@ -1,32 +1,71 @@
-type AppointmentInput = {
-  userId: string;
-  barberId: string;
-  date: Date;
-};
+class Appointment {
+  constructor(
+    public readonly userId: string,
+    public readonly barberId: string,
+    public readonly date: AppointmentDate,
+  ) {}
 
-class AppointmentService {
-  async schedule(data: AppointmentInput) {
-    if (!data.userId || !data.barberId) {
-      throw new Error("Dados inválidos");
+  isValid() {
+    return this.date.getValue() > new Date();
+  }
+
+  canBeSchedule() {
+    return true;
+  }
+}
+
+class AppointmentDate {
+  constructor(private readonly value: Date) {
+    if (value < new Date()) {
+      throw new Error("Data não pode ser no passado");
+    }
+  }
+
+  getValue() {
+    return this.value;
+  }
+}
+
+interface IAppointmentRepository {
+  save(appointment: Appointment): Promise<void>;
+}
+
+class InMemoryAppointmentRepository implements IAppointmentRepository {
+  async save(appointment: Appointment): Promise<void> {
+    console.log("Salvado no banco de dados...", appointment);
+  }
+}
+
+class ScheduleAppointmentUseCase {
+  constructor(private repository: IAppointmentRepository) {}
+
+  async execute(input: { userId: string; barberId: string; date: Date }) {
+    const appointment = new Appointment(
+      input.userId,
+      input.barberId,
+      new AppointmentDate(input.date),
+    );
+
+    if (!appointment.canBeSchedule()) {
+      throw new Error("Nâo pode agendar");
     }
 
-    if (data.date < new Date()) {
-      throw new Error("Data inválida");
-    }
+    await this.repository.save(appointment);
 
-    console.log("Salvando no banco...");
     return { success: true };
   }
 }
 
 async function main() {
-  const useCase = new AppointmentService();
+  const appointmentUseCase = new ScheduleAppointmentUseCase(
+    new InMemoryAppointmentRepository(),
+  );
 
-  await useCase.schedule({
+  await appointmentUseCase.execute({
     userId: "user-1",
     barberId: "barber-1",
     date: new Date(Date.now() + 100000),
   });
 }
 
-void main();
+main();
